@@ -1,39 +1,27 @@
-import { useState, useEffect, useCallback } from 'react'
-import { fetchLifestyleEntries, saveLifestyleEntry, deleteLifestyleEntry } from '../cloudkit/records'
+import { useCallback } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../db/db'
 import type { LifestyleEntry } from '../types/schema'
 
 export function useLifestyleEntries(date?: string) {
-  const [entries, setEntries] = useState<LifestyleEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      setEntries(await fetchLifestyleEntries(date))
-    } catch (e) {
-      setError(String(e))
-    } finally {
-      setLoading(false)
-    }
-  }, [date])
-
-  useEffect(() => { load() }, [load])
+  const entries = useLiveQuery(
+    () => date
+      ? db.lifestyleEntries.where('date').equals(date).toArray()
+      : db.lifestyleEntries.orderBy('date').reverse().toArray(),
+    [date],
+    [] as LifestyleEntry[]
+  )
 
   const save = useCallback(async (entry: Omit<LifestyleEntry, 'id'> & { id?: string }) => {
-    const saved = await saveLifestyleEntry(entry)
-    setEntries(prev => {
-      const idx = prev.findIndex(e => e.id === saved.id)
-      return idx >= 0 ? prev.with(idx, saved) : [saved, ...prev]
-    })
-    return saved
+    const id = entry.id ?? crypto.randomUUID()
+    const record: LifestyleEntry = { ...entry, id }
+    await db.lifestyleEntries.put(record)
+    return record
   }, [])
 
   const remove = useCallback(async (id: string) => {
-    await deleteLifestyleEntry(id)
-    setEntries(prev => prev.filter(e => e.id !== id))
+    await db.lifestyleEntries.delete(id)
   }, [])
 
-  return { entries, loading, error, reload: load, save, remove }
+  return { entries, loading: entries === undefined, error: null, save, remove }
 }

@@ -3,8 +3,8 @@ export default function SettingsPage() {
     <div>
       <h1>Settings</h1>
       <section>
-        <h2>Sync</h2>
-        <p>Data syncs automatically via iCloud. Open the native app on iOS or macOS to import sleep data from Apple Health.</p>
+        <h2>Storage</h2>
+        <p>Data is saved locally in your browser. To sync across devices, the native iOS/macOS app with iCloud support is coming soon.</p>
       </section>
     </div>
   )

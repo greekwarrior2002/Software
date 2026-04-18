@@ -1,39 +1,25 @@
-import { useState, useEffect, useCallback } from 'react'
-import { fetchSleepSessions, saveSleepSession, deleteSleepSession } from '../cloudkit/records'
+import { useCallback } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../db/db'
 import type { SleepSession } from '../types/schema'
 
 export function useSleepSessions() {
-  const [sessions, setSessions] = useState<SleepSession[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      setSessions(await fetchSleepSessions())
-    } catch (e) {
-      setError(String(e))
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { load() }, [load])
+  const sessions = useLiveQuery(
+    () => db.sleepSessions.orderBy('startTime').reverse().toArray(),
+    [],
+    [] as SleepSession[]
+  )
 
   const save = useCallback(async (session: Omit<SleepSession, 'id'> & { id?: string }) => {
-    const saved = await saveSleepSession(session)
-    setSessions(prev => {
-      const idx = prev.findIndex(s => s.id === saved.id)
-      return idx >= 0 ? prev.with(idx, saved) : [saved, ...prev]
-    })
-    return saved
+    const id = session.id ?? crypto.randomUUID()
+    const record: SleepSession = { ...session, id }
+    await db.sleepSessions.put(record)
+    return record
   }, [])
 
   const remove = useCallback(async (id: string) => {
-    await deleteSleepSession(id)
-    setSessions(prev => prev.filter(s => s.id !== id))
+    await db.sleepSessions.delete(id)
   }, [])
 
-  return { sessions, loading, error, reload: load, save, remove }
+  return { sessions, loading: sessions === undefined, error: null, save, remove }
 }
