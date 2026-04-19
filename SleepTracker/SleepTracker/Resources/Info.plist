@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSHealthShareUsageDescription</key>
+    <string>Sleep Tracker reads your sleep data from Apple Health to automatically log your sleep sessions.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>Sleep Tracker can write manually entered sleep sessions back to Apple Health.</string>
+    <key>CFBundleDisplayName</key>
+    <string>Sleep Tracker</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+</dict>
+</plist>
